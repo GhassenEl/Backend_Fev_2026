@@ -8,10 +8,12 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+const http = require('http');
+const server= http.createServer(app);
+server.listen(5000,()=>{
+  console.log('server is running on http://localhost:5000');
+});
+res.json('error');
 
 app.use(logger('dev'));
 app.use(express.json());
