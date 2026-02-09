@@ -1,44 +1,60 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 require('dotenv').config();
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-const  connectToMongoDB= require('. config/db');
-var app = express();
-const http = require('http');
-const server= http.createServer(app);
-server.listen(5000,()=>{
-  console.log('server is running on http://localhost:5000');
-});
-res.json('error');
+// Routes
+const userRoutes = require('./src/routes/userRoutes');
+const clientRoutes = require('./src/routes/clientRoutes');
+const animalRoutes = require('./src/routes/animalRoutes');
+const evaluationRoutes = require('./src/routes/evaluationRoutes');
+const livreurRoutes = require('./src/routes/livreurRoutes');
+const panierRoutes = require('./src/routes/panierRoutes');
+const commandeRoutes = require('./src/routes/commandeRoutes');
+const produitRoutes = require('./src/routes/produitRoutes');
 
-app.use(logger('dev'));
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// Connexion à MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pfe_db', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log(' Connecté à MongoDB'))
+.catch(err => console.error(' Erreur de connexion:', err));
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// Routes API
+app.use('/api/users', userRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/animaux', animalRoutes);
+app.use('/api/evaluations', evaluationRoutes);
+app.use('/api/livreurs', livreurRoutes);
+app.use('/api/paniers', panierRoutes);
+app.use('/api/commandes', commandeRoutes);
+app.use('/api/produits', produitRoutes);
+
+// Route de test
+app.get('/', (req, res) => {
+    res.json({ message: 'API PFE Project' });
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// Gestion des erreurs 404
+app.use('*', (req, res) => {
+    res.status(404).json({ error: 'Route non trouvée' });
 });
 
-module.exports = app;
+// Middleware de gestion des erreurs
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Erreur serveur' });
+});
+
+app.listen(PORT, () => {
+    console.log(` Serveur démarré sur le port ${PORT}`);
+});
