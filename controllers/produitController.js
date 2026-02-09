@@ -1,6 +1,6 @@
 const Produit = require("../models/Produit");
 
-// Créer un produit
+// 1.Créer un produit
 exports.createProduit = async (req, res) => {
   try {
     const produit = new Produit(req.body);
@@ -11,7 +11,7 @@ exports.createProduit = async (req, res) => {
   }
 };
 
-// Lire tous les produits
+// 2.Lire tous les produits
 exports.getAllProduits = async (req, res) => {
   try {
     const produits = await Produit.find();
@@ -34,7 +34,7 @@ exports.getProduitById = async (req, res) => {
   }
 };
 
-// Mettre à jour un produit
+// 3. Update un produit
 exports.updateProduit = async (req, res) => {
   try {
     const produit = await Produit.findByIdAndUpdate(req.params.id, req.body, {
@@ -50,7 +50,7 @@ exports.updateProduit = async (req, res) => {
   }
 };
 
-// Supprimer un produit
+// 4. Supprimer un produit
 exports.deleteProduit = async (req, res) => {
   try {
     const produit = await Produit.findByIdAndDelete(req.params.id);
@@ -58,27 +58,6 @@ exports.deleteProduit = async (req, res) => {
       return res.status(404).json({ error: "Produit non trouvé" });
     }
     res.json({ message: "Produit supprimé" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Rechercher des produits
-exports.searchProduits = async (req, res) => {
-  try {
-    const { nom, categorie, minPrix, maxPrix } = req.query;
-    let query = {};
-
-    if (nom) query.nom = { $regex: nom, $options: "i" };
-    if (categorie) query.categorie = categorie;
-    if (minPrix || maxPrix) {
-      query.prix = {};
-      if (minPrix) query.prix.$gte = Number(minPrix);
-      if (maxPrix) query.prix.$lte = Number(maxPrix);
-    }
-
-    const produits = await Produit.find(query);
-    res.json(produits);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

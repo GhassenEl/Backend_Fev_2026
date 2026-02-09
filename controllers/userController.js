@@ -1,6 +1,6 @@
 const User = require("../models/User");
 
-// Créer un utilisateur
+// 1. Créer un utilisateur
 exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
@@ -11,7 +11,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Lire tous les utilisateurs
+//2. Lire tous les utilisateurs
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -34,7 +34,7 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Mettre à jour un utilisateur
+// 3.Update un utilisateur
 exports.updateUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
@@ -50,7 +50,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Supprimer un utilisateur
+// 4.Supprimer un utilisateur
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);

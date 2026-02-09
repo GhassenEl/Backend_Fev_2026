@@ -9,7 +9,7 @@ const animalSchema = new mongoose.Schema({
   type: {
     type: String,
     required: [true, "the name of type of the animal is required"],
-    enum: ["chien", "chat", "oiseau", "rongeur", "reptile", "autre"],
+    enum: ["chien", "chat", "oiseau", "rongeur", "reptile", "rat","autre"],
   },
   client: {
     type: mongoose.Schema.Types.ObjectId,
