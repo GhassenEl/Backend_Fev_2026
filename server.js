@@ -6,16 +6,16 @@ function startServer(port) {
     app.use(express.json());
     
     app.get('/', (req, res) => {
-        res.send(`✅ Serveur sur port ${port}`);
+        res.send(`Serveur sur port ${port}`);
     });
     
     const server = app.listen(port, () => {
-        console.log(`✅ PORT ${port} OK: http://localhost:${port}`);
+        console.log(` PORT ${port} OK: http://localhost:${port}`);
     });
     
     server.on('error', (err) => {
         if (err.code === 'EADDRINUSE') {
-            console.log(`❌ Port ${port} occupé, essai suivant...`);
+            console.log(` Port ${port} occupé, essai suivant...`);
             startServer(port + 1);
         }
     });
