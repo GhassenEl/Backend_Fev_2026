@@ -4,7 +4,8 @@
   "description": "Projet PFE - Système de gestion",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "//": "kent ma7tota start: node server.js eli hiya lezem tkon awel,7eja nodemon w lezem ta3mel start 3al fichier eli ne5dmo 3lih eli howa app.js",
+    "start": "nodemon app.js",
     "dev": "nodemon server.js",
     "test": "node test-api.js"
   },
