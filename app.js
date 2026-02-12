@@ -4,14 +4,14 @@ const cors = require('cors');
 require('dotenv').config();
 
 // Routes
-const userRoutes = require('./src/routes/userRoutes');
-const clientRoutes = require('./src/routes/clientRoutes');
-const animalRoutes = require('./src/routes/animalRoutes');
-const evaluationRoutes = require('./src/routes/evaluationRoutes');
-const livreurRoutes = require('./src/routes/livreurRoutes');
-const panierRoutes = require('./src/routes/panierRoutes');
-const commandeRoutes = require('./src/routes/commandeRoutes');
-const produitRoutes = require('./src/routes/produitRoutes');
+const userRoutes = require('./routes/userRoutes');
+const clientRoutes = require('./routes/clientRoutes');
+const animalRoutes = require('./routes/animalRoutes');
+const evaluationRoutes = require('./routes/evaluationRoutes');
+const livreurRoutes = require('./routes/');
+const panierRoutes = require('./routes/panierRoutes');
+const commandeRoutes = require('./routes/commandeRoutes');
+const produitRoutes = require('./routes/produitRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,7 +30,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pfe_db', 
 .catch(err => console.error(' Erreur de connexion:', err));
 
 // Routes API
-app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/animaux', animalRoutes);
 app.use('/api/evaluations', evaluationRoutes);
@@ -44,10 +44,6 @@ app.get('/', (req, res) => {
     res.json({ message: 'API PFE Project' });
 });
 
-// Gestion des erreurs 404
-app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Route non trouvée' });
-});
 
 // Middleware de gestion des erreurs
 app.use((err, req, res, next) => {
@@ -55,6 +51,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erreur serveur' });
 });
 
-app.listen(PORT, () => {
+app.listen(process.env.PORT, () => {
     console.log(` Serveur démarré sur le port ${PORT}`);
 });
