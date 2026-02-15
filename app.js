@@ -12,7 +12,6 @@ require("dotenv").config(); // Load environment variables
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users.routes");
 
-
 // Import des nouvelles routes
 var animalRoutes = require("./routes/animal.routes");
 var clientRoutes = require("./routes/client.routes");
@@ -33,7 +32,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // Configuration des routes existantes
 app.use("/index", indexRouter);
 app.use("/users", usersRouter);
-
 
 // Configuration des nouvelles routes avec préfixe /api
 app.use("/animals", animalRoutes);
@@ -89,7 +87,6 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   connectToMongoDB();
   console.log(`Server is running on http://localhost:${PORT}`);
-
 });
 
 module.exports = app;
