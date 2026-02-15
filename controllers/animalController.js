@@ -1,138 +1,108 @@
-const Animal = require("../models/Animal");
+const animalModel = require("../models/animal.model");
 
-// 1. AJOUTER - Créer un nouvel animal
-exports.createAnimal = async (req, res) => {
+module.exports.getAllAnimals = async (req, res) => {
   try {
-    const animal = new Animal(req.body);
-    await animal.save();
-    res.status(201).json({
-      success: true,
-      message: "Animal ajouté avec succès",
-      data: animal,
-    });
+    const animals = await animalModel.find();
+    if (animals.length === 0) {
+      throw new Error("No animals found");
+    }
+    res
+      .status(200)
+      .json({ message: "Animals retrieved successfully", data: animals });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 2. AFFICHAGE -tous les animaux
-exports.getAllAnimaux = async (req, res) => {
+module.exports.getAnimalById = async (req, res) => {
   try {
-    const animaux = await Animal.find().populate("client", "nom email");
+    const animalId = req.params.id;
 
-    res.json({
-      success: true,
-      count: animaux.length,
-      data: animaux,
-    });
+    const animal = await animalModel.findById(animalId);
+    if (!animal) {
+      throw new Error("Animal not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Animal retrieved successfully", data: animal });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 3. AFFICHAGE par ID
-exports.getAnimalById = async (req, res) => {
+module.exports.createAnimal = async (req, res) => {
   try {
-    const animal = await Animal.findById(req.params.id).populate(
-      "client",
-      "nom email",
+    const { nom, espece, race, age, poids, proprietaire_id } = req.body;
+    const newAnimal = new animalModel({
+      nom,
+      espece,
+      race,
+      age,
+      poids,
+      proprietaire_id,
+    });
+    await newAnimal.save();
+    res
+      .status(201)
+      .json({ message: "Animal created successfully", data: newAnimal });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.updateAnimal = async (req, res) => {
+  try {
+    const animalId = req.params.id;
+    const { nom, espece, race, age, poids, proprietaire_id } = req.body;
+    const updatedAnimal = await animalModel.findByIdAndUpdate(
+      animalId,
+      { nom, espece, race, age, poids, proprietaire_id },
+      { new: true },
     );
-
-    if (!animal) {
-      return res.status(404).json({
-        success: false,
-        error: "Animal non trouvé",
-      });
+    if (!updatedAnimal) {
+      throw new Error("Animal not found");
     }
-
-    res.json({
-      success: true,
-      data: animal,
-    });
+    res
+      .status(200)
+      .json({ message: "Animal updated successfully", data: updatedAnimal });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 4. AFFICHAGE - Récupérer les animaux
-exports.getAnimauxByClient = async (req, res) => {
+module.exports.deleteAnimal = async (req, res) => {
   try {
-    const animaux = await Animal.find({ client: req.params.clientId }).populate(
-      "client",
-      "nom email",
-    );
-
-    res.json({
-      success: true,
-      count: animaux.length,
-      data: animaux,
-    });
+    const animalId = req.params.id;
+    const deletedAnimal = await animalModel.findByIdAndDelete(animalId);
+    if (!deletedAnimal) {
+      throw new Error("Animal not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Animal deleted successfully", data: deletedAnimal });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 5. UPDATE - Mettre à jour un animal
-exports.updateAnimal = async (req, res) => {
+module.exports.createAnimalWithImage = async (req, res) => {
   try {
-    const animal = await Animal.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate("client", "nom email");
-
-    if (!animal) {
-      return res.status(404).json({
-        success: false,
-        error: "Animal non trouvé",
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Animal mis à jour avec succès",
-      data: animal,
+    const { nom, espece, race, age, poids, proprietaire_id } = req.body;
+    const animal_image = req.file.filename;
+    const newAnimal = new animalModel({
+      nom,
+      espece,
+      race,
+      age,
+      poids,
+      proprietaire_id,
+      animal_image,
     });
+    await newAnimal.save();
+    res
+      .status(201)
+      .json({ message: "Animal created successfully", data: newAnimal });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// 6. SUPPRESSION - Supprimer un animal
-exports.deleteAnimal = async (req, res) => {
-  try {
-    const animal = await Animal.findByIdAndDelete(req.params.id);
-
-    if (!animal) {
-      return res.status(404).json({
-        success: false,
-        error: "Animal non trouvé",
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Animal supprimé avec succès",
-      data: {},
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };

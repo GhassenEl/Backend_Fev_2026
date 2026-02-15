@@ -1,164 +1,103 @@
-const Livreur = require("../models/Livreur");
-const User = require("../models/User");
+const livreurModel = require("../models/livreur.model");
 
-// 1.CREATE
-exports.createLivreur = async (req, res) => {
+module.exports.getAllLivreurs = async (req, res) => {
   try {
-    // Créer l'utilisateur
-    const user = new User({
-      nom: req.body.nom,
-      email: req.body.email,
-      password: req.body.password,
-      role: "livreur",
-    });
-    await user.save();
+    const livreurs = await livreurModel.find();
+    if (livreurs.length === 0) {
+      throw new Error("No livreurs found");
+    }
+    res
+      .status(200)
+      .json({ message: "Livreurs retrieved successfully", data: livreurs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    // Créer le livreur
-    const livreur = new Livreur({
-      user: user._id,
-      disponible:
-        req.body.disponible !== undefined ? req.body.disponible : true,
-      note: req.body.note || 0,
-      telephone: req.body.telephone,
-      vehicule: req.body.vehicule,
-    });
-    await livreur.save();
+module.exports.getLivreurById = async (req, res) => {
+  try {
+    const livreurId = req.params.id;
 
-    const livreurWithUser = await Livreur.findById(livreur._id).populate(
-      "user",
-      "nom email role",
+    const livreur = await livreurModel.findById(livreurId);
+    if (!livreur) {
+      throw new Error("Livreur not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Livreur retrieved successfully", data: livreur });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.createLivreur = async (req, res) => {
+  try {
+    const {
+      nom,
+      prenom,
+      telephone,
+      email,
+      vehicule,
+      zone_livraison,
+      disponible,
+    } = req.body;
+    const newLivreur = new livreurModel({
+      nom,
+      prenom,
+      telephone,
+      email,
+      vehicule,
+      zone_livraison,
+      disponible,
+    });
+    await newLivreur.save();
+    res
+      .status(201)
+      .json({ message: "Livreur created successfully", data: newLivreur });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.updateLivreur = async (req, res) => {
+  try {
+    const livreurId = req.params.id;
+    const {
+      nom,
+      prenom,
+      telephone,
+      email,
+      vehicule,
+      zone_livraison,
+      disponible,
+    } = req.body;
+    const updatedLivreur = await livreurModel.findByIdAndUpdate(
+      livreurId,
+      { nom, prenom, telephone, email, vehicule, zone_livraison, disponible },
+      { new: true },
     );
-
-    res.status(201).json({
-      success: true,
-      message: "Livreur ajouté",
-      data: livreurWithUser,
-    });
+    if (!updatedLivreur) {
+      throw new Error("Livreur not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Livreur updated successfully", data: updatedLivreur });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 2.READ ALL
-exports.getAllLivreurs = async (req, res) => {
+module.exports.deleteLivreur = async (req, res) => {
   try {
-    const livreurs = await Livreur.find()
-      .populate("user", "nom email")
-      .populate("commandes", "statut total");
-
-    res.json({
-      success: true,
-      count: livreurs.length,
-      data: livreurs,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// READ ONE
-exports.getLivreurById = async (req, res) => {
-  try {
-    const livreur = await Livreur.findById(req.params.id)
-      .populate("user", "nom email telephone")
-      .populate("commandes")
-      .populate("evaluations");
-
-    if (!livreur) {
-      return res.status(404).json({
-        success: false,
-        error: "Livreur non trouvé",
-      });
+    const livreurId = req.params.id;
+    const deletedLivreur = await livreurModel.findByIdAndDelete(livreurId);
+    if (!deletedLivreur) {
+      throw new Error("Livreur not found");
     }
-
-    res.json({
-      success: true,
-      data: livreur,
-    });
+    res
+      .status(200)
+      .json({ message: "Livreur deleted successfully", data: deletedLivreur });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// 3.UPDATE
-exports.updateLivreur = async (req, res) => {
-  try {
-    const livreur = await Livreur.findById(req.params.id);
-
-    if (!livreur) {
-      return res.status(404).json({
-        success: false,
-        error: "Livreur non trouvé",
-      });
-    }
-
-    // Mettre à jour l'utilisateur si nécessaire
-    if (req.body.nom || req.body.email) {
-      await User.findByIdAndUpdate(
-        livreur.user,
-        {
-          nom: req.body.nom,
-          email: req.body.email,
-        },
-        { new: true, runValidators: true },
-      );
-    }
-
-    const updatedLivreur = await Livreur.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true },
-    ).populate("user", "nom email");
-
-    res.json({
-      success: true,
-      message: "Livreur mis à jour",
-      data: updatedLivreur,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// 4.DELETE
-exports.deleteLivreur = async (req, res) => {
-  try {
-    const livreur = await Livreur.findById(req.params.id);
-
-    if (!livreur) {
-      return res.status(404).json({
-        success: false,
-        error: "Livreur non trouvé",
-      });
-    }
-
-    // Supprimer l'utilisateur associé
-    await User.findByIdAndDelete(livreur.user);
-
-    // Supprimer le livreur
-    await livreur.deleteOne();
-
-    res.json({
-      success: true,
-      message: "Livreur supprimé",
-      data: {},
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };

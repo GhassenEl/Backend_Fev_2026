@@ -1,119 +1,99 @@
-const Evaluation = require("../models/Evaluation");
+const evaluationModel = require("../models/evaluation.model");
 
-// 1.CREATE
-exports.createEvaluation = async (req, res) => {
+module.exports.getAllEvaluations = async (req, res) => {
   try {
-    const evaluation = new Evaluation(req.body);
-    await evaluation.save();
-    res.status(201).json({
-      success: true,
-      message: "Évaluation créée",
-      data: evaluation,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// 2.READ ALL
-exports.getAllEvaluations = async (req, res) => {
-  try {
-    const evaluations = await Evaluation.find()
-      .populate("client", "nom")
-      .populate("livreur", "nom");
-
-    res.json({
-      success: true,
-      count: evaluations.length,
-      data: evaluations,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// READ ONE
-exports.getEvaluationById = async (req, res) => {
-  try {
-    const evaluation = await Evaluation.findById(req.params.id)
-      .populate("client", "nom email")
-      .populate("livreur", "nom telephone");
-
-    if (!evaluation) {
-      return res.status(404).json({
-        success: false,
-        error: "Évaluation non trouvée",
-      });
+    const evaluations = await evaluationModel.find();
+    if (evaluations.length === 0) {
+      throw new Error("No evaluations found");
     }
-
-    res.json({
-      success: true,
-      data: evaluation,
-    });
+    res
+      .status(200)
+      .json({
+        message: "Evaluations retrieved successfully",
+        data: evaluations,
+      });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-//3. UPDATE
-exports.updateEvaluation = async (req, res) => {
+module.exports.getEvaluationById = async (req, res) => {
   try {
-    const evaluation = await Evaluation.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true },
+    const evaluationId = req.params.id;
+
+    const evaluation = await evaluationModel.findById(evaluationId);
+    if (!evaluation) {
+      throw new Error("Evaluation not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Evaluation retrieved successfully", data: evaluation });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.createEvaluation = async (req, res) => {
+  try {
+    const { client_id, produit_id, note, commentaire, date_evaluation } =
+      req.body;
+    const newEvaluation = new evaluationModel({
+      client_id,
+      produit_id,
+      note,
+      commentaire,
+      date_evaluation,
+    });
+    await newEvaluation.save();
+    res
+      .status(201)
+      .json({
+        message: "Evaluation created successfully",
+        data: newEvaluation,
+      });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.updateEvaluation = async (req, res) => {
+  try {
+    const evaluationId = req.params.id;
+    const { note, commentaire } = req.body;
+    const updatedEvaluation = await evaluationModel.findByIdAndUpdate(
+      evaluationId,
+      { note, commentaire },
+      { new: true },
     );
-
-    if (!evaluation) {
-      return res.status(404).json({
-        success: false,
-        error: "Évaluation non trouvée",
-      });
+    if (!updatedEvaluation) {
+      throw new Error("Evaluation not found");
     }
-
-    res.json({
-      success: true,
-      message: "Évaluation mise à jour",
-      data: evaluation,
-    });
+    res
+      .status(200)
+      .json({
+        message: "Evaluation updated successfully",
+        data: updatedEvaluation,
+      });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 4.DELETE
-exports.deleteEvaluation = async (req, res) => {
+module.exports.deleteEvaluation = async (req, res) => {
   try {
-    const evaluation = await Evaluation.findByIdAndDelete(req.params.id);
-
-    if (!evaluation) {
-      return res.status(404).json({
-        success: false,
-        error: "Évaluation non trouvée",
-      });
+    const evaluationId = req.params.id;
+    const deletedEvaluation =
+      await evaluationModel.findByIdAndDelete(evaluationId);
+    if (!deletedEvaluation) {
+      throw new Error("Evaluation not found");
     }
-
-    res.json({
-      success: true,
-      message: "Évaluation supprimée",
-      data: {},
-    });
+    res
+      .status(200)
+      .json({
+        message: "Evaluation deleted successfully",
+        data: deletedEvaluation,
+      });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };

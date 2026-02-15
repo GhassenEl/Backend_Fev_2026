@@ -1,74 +1,86 @@
-const Client = require("../models/Client");
+const clientModel = require("../models/client.model");
 
-// 1. AJOUTER client
-exports.createClient = async (req, res) => {
+module.exports.getAllClients = async (req, res) => {
   try {
-    const client = await Client.create(req.body);
-    res.status(201).json(client);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-// 2. AFFICHER TOUS les clients
-exports.getAllClients = async (req, res) => {
-  try {
-    const clients = await Client.find();
-    res.json(clients);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// AFFICHER UN client by id
-exports.getClientById = async (req, res) => {
-  try {
-    const client = await Client.findById(req.params.id);
-    if (!client) {
-      return res.status(404).json({ error: "Non trouvé" });
+    const clients = await clientModel.find();
+    if (clients.length === 0) {
+      throw new Error("No clients found");
     }
-    res.json(client);
+    res
+      .status(200)
+      .json({ message: "Clients retrieved successfully", data: clients });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-//3. MODIFIER un client
-exports.updateClient = async (req, res) => {
+module.exports.getClientById = async (req, res) => {
   try {
-    const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const clientId = req.params.id;
+
+    const client = await clientModel.findById(clientId);
+    if (!client) {
+      throw new Error("Client not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Client retrieved successfully", data: client });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.createClient = async (req, res) => {
+  try {
+    const { nom, prenom, email, telephone, adresse, date_inscription } =
+      req.body;
+    const newClient = new clientModel({
+      nom,
+      prenom,
+      email,
+      telephone,
+      adresse,
+      date_inscription,
     });
-    if (!client) {
-      return res.status(404).json({ error: "Non trouvé" });
-    }
-    res.json(client);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-// 4. SUPPRIMER client
-exports.deleteClient = async (req, res) => {
-  try {
-    const client = await Client.findByIdAndDelete(req.params.id);
-    if (!client) {
-      return res.status(404).json({ error: "Non trouvé" });
-    }
-    res.json({ message: "Supprimé" });
+    await newClient.save();
+    res
+      .status(201)
+      .json({ message: "Client created successfully", data: newClient });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// affichage des clients
-exports.getClient = async (req, res) => {
+module.exports.updateClient = async (req, res) => {
   try {
-    const client = await Client.findById(req.params.id).populate("animaux");
-    if (!client) {
-      return res.status(404).json({ error: "Non trouvé" });
+    const clientId = req.params.id;
+    const { nom, prenom, email, telephone, adresse } = req.body;
+    const updatedClient = await clientModel.findByIdAndUpdate(
+      clientId,
+      { nom, prenom, email, telephone, adresse },
+      { new: true },
+    );
+    if (!updatedClient) {
+      throw new Error("Client not found");
     }
-    res.json(client.animaux);
+    res
+      .status(200)
+      .json({ message: "Client updated successfully", data: updatedClient });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.deleteClient = async (req, res) => {
+  try {
+    const clientId = req.params.id;
+    const deletedClient = await clientModel.findByIdAndDelete(clientId);
+    if (!deletedClient) {
+      throw new Error("Client not found");
+    }
+    res
+      .status(200)
+      .json({ message: "Client deleted successfully", data: deletedClient });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
