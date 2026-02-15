@@ -1,56 +1,95 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
+const http = require("http");
 
-// Routes
-const userRoutes = require('./routes/userRoutes');
-const clientRoutes = require('./routes/clientRoutes');
-const animalRoutes = require('./routes/animalRoutes');
-const evaluationRoutes = require('./routes/evaluationRoutes');
-const livreurRoutes = require('./routes/');
-const panierRoutes = require('./routes/panierRoutes');
-const commandeRoutes = require('./routes/commandeRoutes');
-const produitRoutes = require('./routes/produitRoutes');
+const { connectToMongoDB } = require("./config/db");
+require("dotenv").config(); // Load environment variables
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// Import des routes existantes
+var indexRouter = require("./routes/index");
+var usersRouter = require("./routes/users.routes");
 
-// Middleware
-app.use(cors());
+
+// Import des nouvelles routes
+var animalRoutes = require("./routes/animal.routes");
+var clientRoutes = require("./routes/client.routes");
+var commandeRoutes = require("./routes/commande.routes");
+var evaluationRoutes = require("./routes/evaluation.routes");
+var livreurRoutes = require("./routes/livreur.routes");
+var panierRoutes = require("./routes/panier.routes");
+var produitRoutes = require("./routes/produit.routes");
+
+var app = express();
+
+app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
 
-// Connexion à MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pfe_db', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log(' Connecté à MongoDB'))
-.catch(err => console.error(' Erreur de connexion:', err));
+// Configuration des routes existantes
+app.use("/index", indexRouter);
+app.use("/users", usersRouter);
 
-// Routes API
-app.use('/users', userRoutes);
-app.use('/api/clients', clientRoutes);
-app.use('/api/animaux', animalRoutes);
-app.use('/api/evaluations', evaluationRoutes);
-app.use('/api/livreurs', livreurRoutes);
-app.use('/api/paniers', panierRoutes);
-app.use('/api/commandes', commandeRoutes);
-app.use('/api/produits', produitRoutes);
 
-// Route de test
-app.get('/', (req, res) => {
-    res.json({ message: 'API PFE Project' });
+// Configuration des nouvelles routes avec préfixe /api
+app.use("/animals", animalRoutes);
+app.use("/clients", clientRoutes);
+app.use("/commandes", commandeRoutes);
+app.use("/evaluations", evaluationRoutes);
+app.use("/livreurs", livreurRoutes);
+app.use("/paniers", panierRoutes);
+app.use("/produits", produitRoutes);
+
+// Route de bienvenue pour l'API
+app.get("/api", (req, res) => {
+  res.json({
+    message: "Bienvenue sur l'API de votre application",
+    endpoints: {
+      animals: "/animals",
+      clients: "/clients",
+      commandes: "/commandes",
+      evaluations: "/evaluations",
+      livreurs: "/livreurs",
+      paniers: "/paniers",
+      produits: "/produits",
+      users: "/users",
+    },
+  });
 });
 
-
-// Middleware de gestion des erreurs
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Erreur serveur' });
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(` Serveur démarré sur le port ${PORT}`);
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.json({
+    error: {
+      message: err.message,
+      status: err.status || 500,
+    },
+  });
 });
+
+// Create server and connect to database
+const server = http.createServer(app);
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  connectToMongoDB();
+  console.log(`Server is running on http://localhost:${PORT}`);
+
+});
+
+module.exports = app;
