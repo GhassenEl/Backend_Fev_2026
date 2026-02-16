@@ -1,49 +1,29 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 const livreurController = require("../controllers/livreur.controller");
-const upload = require("../middlewares/uploadfile");
-const logMiddleware = require("../middlewares/LogMiddleware");
+const upload = require("../config/upload.config");
 
-/* GET all livreurs */
-router.get("/GetAllLivreurs", logMiddleware, livreurController.getAllLivreurs);
-
-/* GET livreur by ID */
-router.get("/GetLivreurById/:id", livreurController.getLivreurById);
-
-/* GET available livreurs */
-router.get("/GetAvailableLivreurs", livreurController.getAvailableLivreurs);
-
-/* GET livreurs by zone */
-router.get("/GetLivreursByZone/:ville", livreurController.getLivreursByZone);
-
-/* POST create livreur */
-router.post("/CreateLivreur", livreurController.createLivreur);
-
-/* POST create livreur with photo */
+// Upload multiple (photo + permis)
 router.post(
-  "/CreateLivreurWithPhoto",
-  upload.single("photo"),
-  logMiddleware,
-  livreurController.createLivreurWithPhoto,
+  "/livreurs",
+  upload.livreur.fields([
+    { name: "photo", maxCount: 1 },
+    { name: "permis", maxCount: 1 },
+  ]),
+  livreurController.createLivreur,
 );
 
-/* POST upload document */
-router.post(
-  "/UploadDocument/:id",
-  upload.single("document"),
-  livreurController.uploadDocument,
+router.put(
+  "/livreurs/:id",
+  upload.livreur.fields([
+    { name: "photo", maxCount: 1 },
+    { name: "permis", maxCount: 1 },
+  ]),
+  livreurController.updateLivreur,
 );
 
-/* PUT update livreur */
-router.put("/UpdateLivreur/:id", livreurController.updateLivreur);
-
-/* PUT update disponibilite */
-router.put("/UpdateDisponibilite/:id", livreurController.updateDisponibilite);
-
-/* PUT update statistiques */
-router.put("/UpdateStatistiques/:id", livreurController.updateStatistiques);
-
-/* DELETE livreur */
-router.delete("/DeleteLivreur/:id", livreurController.deleteLivreur);
+router.get("/livreurs", livreurController.getAllLivreurs);
+router.get("/livreurs/:id", livreurController.getLivreurById);
+router.delete("/livreurs/:id", livreurController.deleteLivreur);
 
 module.exports = router;

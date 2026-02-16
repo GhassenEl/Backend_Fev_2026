@@ -1,145 +1,50 @@
-const produitModel = require("../models/produit.model");
+const Produit = require('../models/Produit');
 
-module.exports.getAllProduits = async (req, res) => {
+exports.createProduit = async (req, res) => {
   try {
-    const produits = await produitModel.find();
-    if (produits.length === 0) {
-      throw new Error("No produits found");
-    }
-    res
-      .status(200)
-      .json({ message: "Produits retrieved successfully", data: produits });
+    const produitData = {
+      ...req.body,
+      image: req.file ? `/images/produits/${req.file.filename}` : null
+    };
+    
+    const produit = new Produit(produitData);
+    await produit.save();
+    
+    res.status(201).json({
+      success: true,
+      message: "Produit créé avec succès",
+      data: produit
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
-module.exports.getProduitById = async (req, res) => {
+exports.addProduitImages = async (req, res) => {
   try {
-    const produitId = req.params.id;
-
-    const produit = await produitModel.findById(produitId);
+    const produit = await Produit.findById(req.params.id);
+    
     if (!produit) {
-      throw new Error("Produit not found");
+      return res.status(404).json({ message: "Produit non trouvé" });
     }
-    res
-      .status(200)
-      .json({ message: "Produit retrieved successfully", data: produit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.getProduitsByCategorie = async (req, res) => {
-  try {
-    const categorie = req.params.categorie;
-
-    const produits = await produitModel.find({ categorie });
-    if (produits.length === 0) {
-      throw new Error("No produits found in this category");
-    }
-    res
-      .status(200)
-      .json({ message: "Produits retrieved successfully", data: produits });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.createProduit = async (req, res) => {
-  try {
-    const { nom, description, prix, categorie, stock, animal_cible } = req.body;
-    const newProduit = new produitModel({
-      nom,
-      description,
-      prix,
-      categorie,
-      stock,
-      animal_cible,
+    
+    const images = req.files.map(file => `/images/produits/${file.filename}`);
+    produit.images = [...(produit.images || []), ...images];
+    
+    await produit.save();
+    
+    res.json({
+      success: true,
+      message: "Images ajoutées avec succès",
+      data: produit
     });
-    await newProduit.save();
-    res
-      .status(201)
-      .json({ message: "Produit created successfully", data: newProduit });
   } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.updateProduit = async (req, res) => {
-  try {
-    const produitId = req.params.id;
-    const { nom, description, prix, categorie, stock, animal_cible } = req.body;
-    const updatedProduit = await produitModel.findByIdAndUpdate(
-      produitId,
-      { nom, description, prix, categorie, stock, animal_cible },
-      { new: true },
-    );
-    if (!updatedProduit) {
-      throw new Error("Produit not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Produit updated successfully", data: updatedProduit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.deleteProduit = async (req, res) => {
-  try {
-    const produitId = req.params.id;
-    const deletedProduit = await produitModel.findByIdAndDelete(produitId);
-    if (!deletedProduit) {
-      throw new Error("Produit not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Produit deleted successfully", data: deletedProduit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.createProduitWithImage = async (req, res) => {
-  try {
-    const { nom, description, prix, categorie, stock, animal_cible } = req.body;
-    const produit_image = req.file.filename;
-    const newProduit = new produitModel({
-      nom,
-      description,
-      prix,
-      categorie,
-      stock,
-      animal_cible,
-      produit_image,
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
-    await newProduit.save();
-    res
-      .status(201)
-      .json({ message: "Produit created successfully", data: newProduit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports.updateStock = async (req, res) => {
-  try {
-    const produitId = req.params.id;
-    const { stock } = req.body;
-
-    const updatedProduit = await produitModel.findByIdAndUpdate(
-      produitId,
-      { stock },
-      { new: true },
-    );
-    if (!updatedProduit) {
-      throw new Error("Produit not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Stock updated successfully", data: updatedProduit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 };

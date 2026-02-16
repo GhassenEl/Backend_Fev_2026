@@ -1,43 +1,20 @@
-var express = require("express");
-var router = express.Router();
-const commandeController = require("../controllers/commande.controller");
-const logMiddleware = require("../middlewares/LogMiddleware");
+const express = require("express");
+const router = express.Router();
 
-/* GET all commandes */
-router.get(
-  "/GetAllCommandes",
-  logMiddleware,
-  commandeController.getAllCommandes,
+router.get("/commandes", (req, res) =>
+  res.json({ message: "Liste des commandes" }),
 );
-
-/* GET commande by ID */
-router.get("/GetCommandeById/:id", commandeController.getCommandeById);
-
-/* GET commandes by client ID */
-router.get(
-  "/GetCommandesByClient/:clientId",
-  commandeController.getCommandesByClient,
+router.get("/commandes/:id", (req, res) =>
+  res.json({ message: `Commande ${req.params.id}` }),
 );
-
-/* POST create commande */
-router.post("/CreateCommande", commandeController.createCommande);
-
-/* POST create commande from panier */
-router.post(
-  "/CreateCommandeFromPanier/:panierId",
-  commandeController.createCommandeFromPanier,
+router.post("/commandes", (req, res) =>
+  res.status(201).json({ message: "Commande créée", data: req.body }),
 );
-
-/* PUT update commande */
-router.put("/UpdateCommande/:id", commandeController.updateCommande);
-
-/* PUT update commande status */
-router.put(
-  "/UpdateCommandeStatus/:id",
-  commandeController.updateCommandeStatus,
+router.put("/commandes/:id", (req, res) =>
+  res.json({ message: `Commande ${req.params.id} mise à jour` }),
 );
-
-/* DELETE commande */
-router.delete("/DeleteCommande/:id", commandeController.deleteCommande);
+router.delete("/commandes/:id", (req, res) =>
+  res.json({ message: `Commande ${req.params.id} supprimée` }),
+);
 
 module.exports = router;

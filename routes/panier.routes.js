@@ -1,48 +1,31 @@
-var express = require("express");
-var router = express.Router();
-const panierController = require("../controllers/panier.controller.");
-const logMiddleware = require("../middlewares/LogMiddleware");
+const express = require("express");
+const router = express.Router();
 
-/* GET all paniers */
-router.get("/GetAllPaniers", logMiddleware, panierController.getAllPaniers);
+// Routes pour panier
+router.get("/paniers", (req, res) => {
+  res.json({ message: "Liste des paniers" });
+});
 
-/* GET panier by ID */
-router.get("/GetPanierById/:id", panierController.getPanierById);
+router.get("/paniers/:id", (req, res) => {
+  res.json({ message: `Panier avec ID: ${req.params.id}` });
+});
 
-/* GET panier by client ID */
-router.get(
-  "/GetPanierByClient/:clientId",
-  panierController.getPanierByClientId,
-);
+router.post("/paniers", (req, res) => {
+  res.status(201).json({
+    message: "Panier créé",
+    data: req.body,
+  });
+});
 
-/* POST create panier */
-router.post("/CreatePanier", panierController.createPanier);
+router.put("/paniers/:id", (req, res) => {
+  res.json({
+    message: `Panier ${req.params.id} mis à jour`,
+    data: req.body,
+  });
+});
 
-/* POST create panier for client */
-router.post(
-  "/CreatePanierForClient/:clientId",
-  panierController.createPanierForClient,
-);
-
-/* POST add product to panier */
-router.post("/AddProduct/:id", panierController.addProductToPanier);
-
-/* PUT update product quantity */
-router.put(
-  "/UpdateProductQuantity/:id",
-  panierController.updateProductQuantity,
-);
-
-/* DELETE remove product from panier */
-router.delete("/RemoveProduct/:id", panierController.removeProductFromPanier);
-
-/* PUT apply promo code */
-router.put("/ApplyPromoCode/:id", panierController.applyPromoCode);
-
-/* PUT clear panier */
-router.put("/ClearPanier/:id", panierController.clearPanier);
-
-/* DELETE panier */
-router.delete("/DeletePanier/:id", panierController.deletePanier);
+router.delete("/paniers/:id", (req, res) => {
+  res.json({ message: `Panier ${req.params.id} supprimé` });
+});
 
 module.exports = router;

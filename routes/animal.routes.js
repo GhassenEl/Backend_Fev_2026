@@ -1,30 +1,24 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 const animalController = require("../controllers/animal.controller");
-const upload = require("../middlewares/uploadfile");
-const logMiddleware = require("../middlewares/LogMiddleware");
+const upload = require("../config/upload.config");
 
-/* GET all animals */
-router.get("/GetAllAnimals", logMiddleware, animalController.getAllAnimals);
-
-/* GET animal by ID */
-router.get("/GetAnimalById/:id", animalController.getAnimalById);
-
-/* POST create animal */
-router.post("/CreateAnimal", animalController.createAnimal);
-
-/* POST create animal with image */
+// Route avec upload d'image
 router.post(
-  "/CreateAnimalWithImage",
-  upload.single("animal_image"),
-  logMiddleware,
-  animalController.createAnimalWithImage,
+  "/animals",
+  upload.animal.single("image"), // 'image' est le nom du champ dans le formulaire
+  animalController.createAnimal,
 );
 
-/* DELETE animal */
-router.delete("/DeleteAnimal/:id", animalController.deleteAnimal);
+router.put(
+  "/animals/:id",
+  upload.animal.single("image"),
+  animalController.updateAnimal,
+);
 
-/* PUT update animal */
-router.put("/UpdateAnimal/:id", animalController.updateAnimal);
+// Les autres routes sans upload
+router.get("/animals", animalController.getAllAnimals);
+router.get("/animals/:id", animalController.getAnimalById);
+router.delete("/animals/:id", animalController.deleteAnimal);
 
 module.exports = router;
