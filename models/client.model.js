@@ -71,7 +71,7 @@ const clientSchema = new mongoose.Schema(
     // Méthodes de paiement préférées
     methodes_paiement: [
       {
-        type: { type: String, enum: ["carte", "paypal", "virement"] },
+        type: { type: String, enum: ["carteBancaire", "paypal", "virement","Stripe"] },
         details: String,
         par_defaut: { type: Boolean, default: false },
       },

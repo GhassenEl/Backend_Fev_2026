@@ -22,35 +22,39 @@ const userSchema = new mongoose.Schema(
     age: { type: Number, min: 20, max: 80 },
     role: {
       type: String,
-      enum: ["admin", "user", "moderateur"],
+      enum: ["admin", "user", "moderateur", "client", "livreur"],
       default: "user",
     },
     location: String,
-    user_image: String, //champs image
+    user_image: String,
 
     //champs role admin
     tel: Number,
 
-    //champs role moderateur
-    codeModerateur: String,
-    mycar: { type: mongoose.Schema.Types.ObjectId, ref: "Car" }, // Référence
-    //  à plusieurs voitures pour les modérateurs
-    listOfCars: [{ type: mongoose.Schema.Types.ObjectId, ref: "Car" }], // Référence à plusieurs voitures pour les modérateurs
-    //champs prof
-    specialite: String,
-    diplome: String,
-    listdesEtudiants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Référence à plusieurs utilisateurs étudiants
+    // Nouveaux champs pour les relations avec les autres tables
+    // En tant que client
+    panier: { type: mongoose.Schema.Types.ObjectId, ref: "Panier" },
+    commandes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Commande" }],
+    evaluations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Evaluation" }],
+    animaux: [{ type: mongoose.Schema.Types.ObjectId, ref: "Animal" }],
 
-    //champs etudiant
-    listdesprof: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Référence à plusieurs utilisateurs professeurs
+    // En tant que livreur
+    livraisons: [{ type: mongoose.Schema.Types.ObjectId, ref: "Commande" }],
+    evaluationsRecues: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Evaluation" },
+    ],
+    vehicule: String,
+    disponible: { type: Boolean, default: true },
   },
   { timestamps: true },
 );
 
 userSchema.pre("save", async function () {
   try {
-    const salt = await bcrypt.genSalt();
-    this.password = await bcrypt.hash(this.password, salt);
+    if (this.isModified("password")) {
+      const salt = await bcrypt.genSalt();
+      this.password = await bcrypt.hash(this.password, salt);
+    }
   } catch (err) {
     throw err;
   }

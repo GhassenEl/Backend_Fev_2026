@@ -6,8 +6,6 @@ const commandeSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: () =>
-        "CMD-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9),
     },
     client_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,12 +20,8 @@ const commandeSchema = new mongoose.Schema(
     statut: {
       type: String,
       enum: [
-        "en_attente",
-        "confirmée",
-        "en_préparation",
-        "expédiée",
-        "livrée",
-        "annulée",
+        "en_attente", "confirmée","en_préparation",
+        "expédiée", "livrée","annulée",
         "remboursée",
       ],
       default: "en_attente",
@@ -95,7 +89,7 @@ const commandeSchema = new mongoose.Schema(
     paiement: {
       methode: {
         type: String,
-        enum: ["carte", "paypal", "virement", "espèces"],
+        enum: ["carteBancaire", "paypal", "virement", "espèces"],
       },
       statut: {
         type: String,

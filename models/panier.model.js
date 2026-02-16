@@ -74,7 +74,7 @@ const panierSchema = new mongoose.Schema(
 // Middleware pour calculer le total avant sauvegarde
 panierSchema.pre("save", function (next) {
   if (this.produits && this.produits.length > 0) {
-    let total = 0;
+    const total = 0;
     this.produits.forEach((produit) => {
       total += produit.prix_unitaire * produit.quantite;
     });

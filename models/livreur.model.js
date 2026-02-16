@@ -6,8 +6,6 @@ const livreurSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: () =>
-        "LIV-" + Date.now() + "-" + Math.random().toString(36).substr(2, 6),
     },
     nom: {
       type: String,
@@ -43,7 +41,7 @@ const livreurSchema = new mongoose.Schema(
     vehicule: {
       type: {
         type: String,
-        enum: ["vélo", "scooter", "moto", "voiture", "fourgonnette", "camion"],
+        enum: ["scooter", "moto", "voiture", "camion"],
         required: true,
       },
       marque: String,
