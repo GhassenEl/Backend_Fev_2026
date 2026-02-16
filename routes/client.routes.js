@@ -1,30 +1,20 @@
-var express = require("express");
-var router = express.Router();
-const clientController = require("../controllers/client.controller");
-const upload = require("../middlewares/uploadfile");
-const logMiddleware = require("../middlewares/LogMiddleware");
+const express = require("express");
+const router = express.Router();
+const clientController = require("../controllers/client.controller.js");
 
-/* GET all clients */
-router.get("/GetAllClients", logMiddleware, clientController.getAllClients);
+// Route pour créer un nouveau client
+router.post("/clients", clientController.createClient);
 
-/* GET client by ID */
-router.get("/GetClientById/:id", clientController.getClientById);
+// Route pour récupérer tous les clients
+router.get("/clients", clientController.getAllClients);
 
-/* POST create client */
-router.post("/CreateClient", clientController.createClient);
+// Route pour récupérer un client par ID
+router.get("/clients/:id", clientController.getClientById);
 
-/* POST create client with image */
-router.post(
-  "/CreateClientWithImage",
-  upload.single("client_image"),
-  logMiddleware,
-  clientController.createClientWithImage,
-);
+// Route pour mettre à jour un client
+router.put("/clients/:id", clientController.updateClient);
 
-/* DELETE client */
-router.delete("/DeleteClient/:id", clientController.deleteClient);
-
-/* PUT update client */
-router.put("/UpdateClient/:id", clientController.updateClient);
+// Route pour supprimer un client
+router.delete("/clients/:id", clientController.deleteClient);
 
 module.exports = router;
