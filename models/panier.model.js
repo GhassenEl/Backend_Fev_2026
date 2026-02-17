@@ -1,101 +1,91 @@
 const mongoose = require("mongoose");
 
+const articlePanierSchema = new mongoose.Schema({
+  produit: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Produit",
+    required: true,
+  },
+  quantite: {
+    type: Number,
+    required: true,
+    min: [1, "Quantity must be at least 1"],
+    default: 1,
+  },
+  prixUnitaire: {
+    type: Number,
+    required: true,
+  },
+  dateAjout: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const panierSchema = new mongoose.Schema(
   {
-    client_id: {
+    utilisateur: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "User",
       required: true,
       unique: true,
     },
-    produits: [
-      {
-        produit_id: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Produit",
-          required: true,
-        },
-        quantite: {
-          type: Number,
-          required: true,
-          min: 1,
-          default: 1,
-        },
-        prix_unitaire: {
-          type: Number,
-          required: true,
-        },
-        nom_produit: String,
-        image_produit: String,
-        date_ajout: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    total: {
-      type: Number,
-      default: 0,
-      min: 0,
+    articles: [articlePanierSchema],
+
+    totaux: {
+      sousTotal: { type: Number, default: 0 },
+      fraisLivraison: { type: Number, default: 0 },
+      taxes: { type: Number, default: 0 },
+      total: { type: Number, default: 0 },
     },
 
-    // Code promo
-    code_promo: {
-      code: String,
-      remise: Number,
-      type_remise: {
-        type: String,
-        enum: ["pourcentage", "montant_fixe"],
-      },
-    },
+    codePromo: String,
+    reduction: { type: Number, default: 0 },
 
-    // Statut du panier
     statut: {
       type: String,
-      enum: ["actif", "abandonné", "converti", "expiré"],
+      enum: ["actif", "abandonne", "converti", "expire"],
       default: "actif",
     },
 
-    // Date d'expiration (pour nettoyage automatique)
-    date_expiration: {
+    // Relation avec commande
+    commande: { type: mongoose.Schema.Types.ObjectId, ref: "Commande" },
+
+    dateExpiration: {
       type: Date,
       default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000), // 7 jours
     },
 
-    // Dernière activité
-    derniere_activite: {
-      type: Date,
-      default: Date.now,
+    // Adresse de livraison temporaire
+    adresseLivraison: {
+      rue: String,
+      ville: String,
+      codePostal: String,
+      pays: String,
+      instructions: String,
     },
   },
   { timestamps: true },
 );
 
-// Middleware pour calculer le total avant sauvegarde
-panierSchema.pre("save", function (next) {
-  if (this.produits && this.produits.length > 0) {
-    const total = 0;
-    this.produits.forEach((produit) => {
-      total += produit.prix_unitaire * produit.quantite;
-    });
+// Middleware pour calculer les totaux avant sauvegarde
+panierSchema.pre("save", async function (next) {
+  if (this.articles.length > 0) {
+    await this.populate("articles.produit");
 
-    // Appliquer la remise si un code promo est présent
-    if (this.code_promo && this.code_promo.remise) {
-      if (this.code_promo.type_remise === "pourcentage") {
-        total = total * (1 - this.code_promo.remise / 100);
-      } else if (this.code_promo.type_remise === "montant_fixe") {
-        total = Math.max(0, total - this.code_promo.remise);
-      }
+    let sousTotal = 0;
+    for (const article of this.articles) {
+      sousTotal += article.prixUnitaire * article.quantite;
     }
 
-    this.total = total;
+    this.totaux.sousTotal = sousTotal;
+    this.totaux.total =
+      sousTotal +
+      this.totaux.fraisLivraison +
+      this.totaux.taxes -
+      this.reduction;
   }
   next();
-});
-
-// Mettre à jour derniere_activite à chaque modification
-panierSchema.pre("findOneAndUpdate", function () {
-  this.set({ derniere_activite: new Date() });
 });
 
 module.exports = mongoose.model("Panier", panierSchema);

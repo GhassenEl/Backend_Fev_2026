@@ -4,49 +4,55 @@ const animalSchema = new mongoose.Schema(
   {
     nom: {
       type: String,
-      required: [true, "Le nom est requis"],
+      required: [true, "Animal name is required"],
     },
     espece: {
       type: String,
-      required: [true, "L'espèce est requise"],
+      required: [true, "Species is required"],
       enum: [
-        "chien", "chat",
-        "oiseau","poisson",
-        "rongeur","lapin",
+        "chien",
+        "chat",
+        "oiseau",
+        "poisson",
+        "rongeur",
+        "reptile",
         "autre",
       ],
     },
     race: String,
-    age: {
-      type: Number,
-      min: 0,
-      max: 50,
-    },
-    poids: {
-      type: Number,
-      min: 0,
-    },
-    proprietaire_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
-      required: true,
-    },
-    animal_image: String,
-
-    // Informations médicales
-    numero_puce: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
-    date_naissance: Date,
+    age: { type: Number, min: 0, max: 50 },
+    poids: Number,
     couleur: String,
-    sterilise: {
-      type: Boolean,
-      default: false,
+    dateNaissance: Date,
+    sexe: {
+      type: String,
+      enum: ["male", "femelle", "inconnu"],
+      default: "inconnu",
     },
+    sterilise: { type: Boolean, default: false },
+    puceElectronique: String,
+    tatouage: String,
+    photo: String,
+
+    // Allergies et restrictions
     allergies: [String],
-    vaccins: [
+    regimeSpecial: String,
+
+    // Relations
+    proprietaire: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Owner is required"],
+    },
+
+    // Produits recommandés ou achetés pour cet animal
+    produitsAchetes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Produit" }],
+    produitsFavoris: [{ type: mongoose.Schema.Types.ObjectId, ref: "Produit" }],
+
+    // Suivi vétérinaire
+    veterinaire: String,
+    derniereVisite: Date,
+    vaccinations: [
       {
         nom: String,
         date: Date,
@@ -54,24 +60,8 @@ const animalSchema = new mongoose.Schema(
       },
     ],
 
-    // Comportement
-    comportement: {
-      type: String,
-      enum: ["calme", "agité", "timide", "agressif", "joueur"],
-    },
-    sociabilite: {
-      chiens: { type: String, enum: ["bonne", "moyenne", "mauvaise"] },
-      chats: { type: String, enum: ["bonne", "moyenne", "mauvaise"] },
-      enfants: { type: String, enum: ["bonne", "moyenne", "mauvaise"] },
-    },
-
-    // Régime alimentaire
-    regime_alimentaire: {
-      type_nourriture: String,
-      frequence: String,
-      quantite: String,
-      restrictions: [String],
-    },
+    // Notes
+    notes: String,
   },
   { timestamps: true },
 );
