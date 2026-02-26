@@ -1,28 +1,13 @@
-var express = require("express");
+// @ts-nocheck
+var express = require('express');
 var router = express.Router();
-const userController = require("../controllers/user.controller");
-const upload = require("../middlewares/uploadfile");
-const logMiddleware = require("../middlewares/LogMiddleware");
-/* GET users listing. */
-router.get("/GetAllUsers", logMiddleware, userController.getAllUsers);
+var usersController = require('../controllers/users.controller');
 
-router.get("/GetUserById/:id", userController.getUserById);
-
-router.post("/CreateUser", userController.createUser);
-
-router.post(
-  "/CreateUserWithImage",
-  upload.single("user_image"),
-  logMiddleware,
-  userController.createUserWithImage,
-);
-
-router.post("/CreateUserAdmin", userController.createUserAdmin);
-
-router.post("/CreateUserModerateur", userController.createUserModerateur);
-
-router.delete("/deleteUser/:id", userController.deleteUser);
-
-router.put("/updateUser/:id", userController.updateUser);
+router.get('/', usersController.getUsers);
+router.get('/:id', usersController.getUserById);
+router.post('/', usersController.createUser);
+router.put('/:id', usersController.updateUser);
+router.delete('/:id', usersController.deleteUser);
+router.post('/login', usersController.login);
 
 module.exports = router;

@@ -1,23 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const clientController = require("../controllers/client.controller");
-const upload = require("../config/upload.config");
+// @ts-nocheck
+var express = require('express');
+var router = express.Router();
+var clientController = require('../controllers/client.controller');
 
-// Upload de photo de profil pour client
-router.post(
-  "/clients",
-  upload.client.single("avatar"),
-  clientController.createClient,
-);
-
-router.put(
-  "/clients/:id",
-  upload.client.single("avatar"),
-  clientController.updateClient,
-);
-
-router.get("/clients", clientController.getAllClients);
-router.get("/clients/:id", clientController.getClientById);
-router.delete("/clients/:id", clientController.deleteClient);
+router.get('/', clientController.getClients);
+router.get('/:id', clientController.getClientById);
+router.get('/:id/animaux', clientController.getClientWithAnimaux);
+router.post('/', clientController.createClient);
+router.put('/:id', clientController.updateClient);
+router.delete('/:id', clientController.deleteClient);
 
 module.exports = router;

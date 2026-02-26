@@ -1,103 +1,73 @@
-const livreurModel = require("../models/livreur.model");
+var Livreur = require('../models/livreur.model');
 
-module.exports.getAllLivreurs = async (req, res) => {
+exports.getLivreurs = async function(req, res) {
   try {
-    const livreurs = await livreurModel.find();
-    if (livreurs.length === 0) {
-      throw new Error("No livreurs found");
-    }
-    res
-      .status(200)
-      .json({ message: "Livreurs retrieved successfully", data: livreurs });
+    var livreurs = await Livreur.find().populate('commandes');
+    res.status(200).json(livreurs);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.getLivreurById = async (req, res) => {
+exports.getLivreurById = async function(req, res) {
   try {
-    const livreurId = req.params.id;
-
-    const livreur = await livreurModel.findById(livreurId);
-    if (!livreur) {
-      throw new Error("Livreur not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Livreur retrieved successfully", data: livreur });
+    var livreur = await Livreur.findById(req.params.id).populate('commandes');
+    if (!livreur) return res.status(404).json('error');
+    res.status(200).json(livreur);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.createLivreur = async (req, res) => {
+exports.getLivreursDisponibles = async function(req, res) {
   try {
-    const {
-      nom,
-      prenom,
-      telephone,
-      email,
-      vehicule,
-      zone_livraison,
-      disponible,
-    } = req.body;
-    const newLivreur = new livreurModel({
-      nom,
-      prenom,
-      telephone,
-      email,
-      vehicule,
-      zone_livraison,
-      disponible,
-    });
-    await newLivreur.save();
-    res
-      .status(201)
-      .json({ message: "Livreur created successfully", data: newLivreur });
+    var livreurs = await Livreur.find({ disponible: true });
+    res.status(200).json(livreurs);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.updateLivreur = async (req, res) => {
+exports.createLivreur = async function(req, res) {
   try {
-    const livreurId = req.params.id;
-    const {
-      nom,
-      prenom,
-      telephone,
-      email,
-      vehicule,
-      zone_livraison,
-      disponible,
-    } = req.body;
-    const updatedLivreur = await livreurModel.findByIdAndUpdate(
-      livreurId,
-      { nom, prenom, telephone, email, vehicule, zone_livraison, disponible },
-      { new: true },
+    var newLivreur = new Livreur(req.body);
+    var savedLivreur = await newLivreur.save();
+    res.status(201).json(savedLivreur);
+  } catch (error) {
+    res.status(400).json('error');
+  }
+};
+
+exports.updateLivreur = async function(req, res) {
+  try {
+    var livreur = await Livreur.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!livreur) return res.status(404).json('error');
+    res.status(200).json(livreur);
+  } catch (error) {
+    res.status(400).json('error');
+  }
+};
+
+exports.updateDisponibilite = async function(req, res) {
+  try {
+    var livreur = await Livreur.findByIdAndUpdate(
+      req.params.id, 
+      { disponible: req.body.disponible }, 
+      { new: true }
     );
-    if (!updatedLivreur) {
-      throw new Error("Livreur not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Livreur updated successfully", data: updatedLivreur });
+    if (!livreur) return res.status(404).json('error');
+    res.status(200).json(livreur);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json('error');
   }
 };
 
-module.exports.deleteLivreur = async (req, res) => {
+exports.deleteLivreur = async function(req, res) {
   try {
-    const livreurId = req.params.id;
-    const deletedLivreur = await livreurModel.findByIdAndDelete(livreurId);
-    if (!deletedLivreur) {
-      throw new Error("Livreur not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Livreur deleted successfully", data: deletedLivreur });
+    var livreur = await Livreur.findByIdAndDelete(req.params.id);
+    if (!livreur) return res.status(404).json('error');
+    res.status(200).json('error');
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };

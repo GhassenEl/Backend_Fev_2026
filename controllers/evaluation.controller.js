@@ -1,99 +1,85 @@
-const evaluationModel = require("../models/evaluation.model");
+var Evaluation = require('../models/evaluation.model');
+var Livreur = require('../models/livreur.model');
 
-module.exports.getAllEvaluations = async (req, res) => {
+exports.getEvaluations = async function(req, res) {
   try {
-    const evaluations = await evaluationModel.find();
-    if (evaluations.length === 0) {
-      throw new Error("No evaluations found");
-    }
-    res
-      .status(200)
-      .json({
-        message: "Evaluations retrieved successfully",
-        data: evaluations,
-      });
+    var evaluations = await Evaluation.find()
+      .populate('client', 'nom prenom')
+      .populate('produit', 'nom')
+      .populate('livreur', 'nom prenom');
+    res.status(200).json(evaluations);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.getEvaluationById = async (req, res) => {
+exports.getEvaluationById = async function(req, res) {
   try {
-    const evaluationId = req.params.id;
-
-    const evaluation = await evaluationModel.findById(evaluationId);
-    if (!evaluation) {
-      throw new Error("Evaluation not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Evaluation retrieved successfully", data: evaluation });
+    var evaluation = await Evaluation.findById(req.params.id)
+      .populate('client')
+      .populate('produit')
+      .populate('livreur');
+    if (!evaluation) return res.status(404).json('error');
+    res.status(200).json(evaluation);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.createEvaluation = async (req, res) => {
+exports.getEvaluationsByProduit = async function(req, res) {
   try {
-    const { client_id, produit_id, note, commentaire, date_evaluation } =
-      req.body;
-    const newEvaluation = new evaluationModel({
-      client_id,
-      produit_id,
-      note,
-      commentaire,
-      date_evaluation,
-    });
-    await newEvaluation.save();
-    res
-      .status(201)
-      .json({
-        message: "Evaluation created successfully",
-        data: newEvaluation,
-      });
+    var evaluations = await Evaluation.find({ produit: req.params.produitId });
+    var avgNote = evaluations.reduce(function(acc, curr) { return acc + curr.note; }, 0) / evaluations.length;
+    res.status(200).json({ evaluations: evaluations, noteMoyenne: avgNote || 0 });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.updateEvaluation = async (req, res) => {
+exports.getEvaluationsByLivreur = async function(req, res) {
   try {
-    const evaluationId = req.params.id;
-    const { note, commentaire } = req.body;
-    const updatedEvaluation = await evaluationModel.findByIdAndUpdate(
-      evaluationId,
-      { note, commentaire },
-      { new: true },
-    );
-    if (!updatedEvaluation) {
-      throw new Error("Evaluation not found");
-    }
-    res
-      .status(200)
-      .json({
-        message: "Evaluation updated successfully",
-        data: updatedEvaluation,
-      });
+    var evaluations = await Evaluation.find({ livreur: req.params.livreurId });
+    var avgNote = evaluations.reduce(function(acc, curr) { return acc + curr.note; }, 0) / evaluations.length;
+    await Livreur.findByIdAndUpdate(req.params.livreurId, { noteMoyenne: avgNote || 0 });
+    res.status(200).json({ evaluations: evaluations, noteMoyenne: avgNote || 0 });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.deleteEvaluation = async (req, res) => {
+exports.createEvaluation = async function(req, res) {
   try {
-    const evaluationId = req.params.id;
-    const deletedEvaluation =
-      await evaluationModel.findByIdAndDelete(evaluationId);
-    if (!deletedEvaluation) {
-      throw new Error("Evaluation not found");
+    var newEvaluation = new Evaluation(req.body);
+    var savedEvaluation = await newEvaluation.save();
+    
+    if (req.body.livreur) {
+      var livreurEvals = await Evaluation.find({ livreur: req.body.livreur });
+      var avgNote = livreurEvals.reduce(function(acc, curr) { return acc + curr.note; }, 0) / livreurEvals.length;
+      await Livreur.findByIdAndUpdate(req.body.livreur, { noteMoyenne: avgNote });
     }
-    res
-      .status(200)
-      .json({
-        message: "Evaluation deleted successfully",
-        data: deletedEvaluation,
-      });
+    
+    res.status(201).json(savedEvaluation);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json('error');
+  }
+};
+
+exports.updateEvaluation = async function(req, res) {
+  try {
+    var evaluation = await Evaluation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!evaluation) return res.status(404).json('error');
+    res.status(200).json(evaluation);
+  } catch (error) {
+    res.status(400).json('error');
+  }
+};
+
+exports.deleteEvaluation = async function(req, res) {
+  try {
+    var evaluation = await Evaluation.findByIdAndDelete(req.params.id);
+    if (!evaluation) return res.status(404).json('error');
+    res.status(200).json('error');
+  } catch (error) {
+    res.status(500).json('error');
   }
 };

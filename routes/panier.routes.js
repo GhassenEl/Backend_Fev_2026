@@ -1,31 +1,13 @@
-const express = require("express");
-const router = express.Router();
+// @ts-nocheck
+var express = require('express');
+var router = express.Router();
+var panierController = require('../controllers/panier.controller');
 
-// Routes pour panier
-router.get("/paniers", (req, res) => {
-  res.json({ message: "Liste des paniers" });
-});
-
-router.get("/paniers/:id", (req, res) => {
-  res.json({ message: `Panier avec ID: ${req.params.id}` });
-});
-
-router.post("/paniers", (req, res) => {
-  res.status(201).json({
-    message: "Panier créé",
-    data: req.body,
-  });
-});
-
-router.put("/paniers/:id", (req, res) => {
-  res.json({
-    message: `Panier ${req.params.id} mis à jour`,
-    data: req.body,
-  });
-});
-
-router.delete("/paniers/:id", (req, res) => {
-  res.json({ message: `Panier ${req.params.id} supprimé` });
-});
+router.get('/client/:clientId', panierController.getPanierByClient);
+router.post('/', panierController.createPanier);
+router.post('/:panierId/produits', panierController.addProduct);
+router.put('/:panierId/produits/:produitId', panierController.updateQuantity);
+router.delete('/:panierId/produits/:produitId', panierController.removeProduct);
+router.delete('/:panierId/vider', panierController.clearPanier);
 
 module.exports = router;

@@ -1,87 +1,62 @@
-const clientModel = require("../models/client.model");
+var Client = require('../models/client.model');
+var Animal = require('../models/animal.model');
 
-module.exports.getAllClients = async (req, res) => {
+exports.getClients = async function(req, res) {
   try {
-    const clients = await clientModel.find();
-    if (clients.length === 0) {
-      throw new Error("No clients found");
-    }
-    res
-      .status(200)
-      .json({ message: "Clients retrieved successfully", data: clients });
+    var clients = await Client.find().populate('animaux');
+    res.status(200).json(clients);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.getClientById = async (req, res) => {
+exports.getClientById = async function(req, res) {
   try {
-    const clientId = req.params.id;
-
-    const client = await clientModel.findById(clientId);
-    if (!client) {
-      throw new Error("Client not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Client retrieved successfully", data: client });
+    var client = await Client.findById(req.params.id).populate('animaux commandes');
+    if (!client) return res.status(404).json('error');
+    res.status(200).json(client);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.createClient = async (req, res) => {
+exports.getClientWithAnimaux = async function(req, res) {
   try {
-    const { nom, prenom, email, telephone, adresse, date_inscription } =
-      req.body;
-    const newClient = new clientModel({
-      nom,
-      prenom,
-      email,
-      telephone,
-      adresse,
-      date_inscription,
-    });
-    await newClient.save();
-    res
-      .status(201)
-      .json({ message: "Client created successfully", data: newClient });
+    var client = await Client.findById(req.params.id).populate('animaux');
+    if (!client) return res.status(404).json('error');
+    res.status(200).json(client);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json('error');
   }
 };
 
-module.exports.updateClient = async (req, res) => {
+exports.createClient = async function(req, res) {
   try {
-    const clientId = req.params.id;
-    const { nom, prenom, email, telephone, adresse } = req.body;
-    const updatedClient = await clientModel.findByIdAndUpdate(
-      clientId,
-      { nom, prenom, email, telephone, adresse },
-      { new: true },
-    );
-    if (!updatedClient) {
-      throw new Error("Client not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Client updated successfully", data: updatedClient });
+    var newClient = new Client(req.body);
+    var savedClient = await newClient.save();
+    res.status(201).json(savedClient);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json('error');
   }
 };
 
-module.exports.deleteClient = async (req, res) => {
+exports.updateClient = async function(req, res) {
   try {
-    const clientId = req.params.id;
-    const deletedClient = await clientModel.findByIdAndDelete(clientId);
-    if (!deletedClient) {
-      throw new Error("Client not found");
-    }
-    res
-      .status(200)
-      .json({ message: "Client deleted successfully", data: deletedClient });
+    var client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!client) return res.status(404).json('error');
+    res.status(200).json(client);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json('error');
+  }
+};
+
+exports.deleteClient = async function(req, res) {
+  try {
+    var client = await Client.findByIdAndDelete(req.params.id);
+    if (!client) return res.status(404).json('error');
+    await Animal.deleteMany({ proprietaire: client._id });
+    res.status(200).json('error');
+  } catch (error) {
+    res.status(500).json('error');
   }
 };

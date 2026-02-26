@@ -1,30 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const produitController = require("../controllers/produit.controller");
-const upload = require("../config/upload.config");
+// @ts-nocheck
+var express = require('express');
+var router = express.Router();
+var produitController = require('../controllers/produit.controller');
 
-// Upload d'image pour produit (photo du plat)
-router.post(
-  "/produits",
-  upload.produit.single("image"),
-  produitController.createProduit,
-);
-
-router.put(
-  "/produits/:id",
-  upload.produit.single("image"),
-  produitController.updateProduit,
-);
-
-// Upload multiple (plusieurs photos)
-router.post(
-  "/produits/:id/images",
-  upload.produit.array("images", 5), // Max 5 images
-  produitController.addProduitImages,
-);
-
-router.get("/produits", produitController.getAllProduits);
-router.get("/produits/:id", produitController.getProduitById);
-router.delete("/produits/:id", produitController.deleteProduit);
+router.get('/', produitController.getProduits);
+router.get('/:id', produitController.getProduitById);
+router.get('/categorie/:categorie', produitController.getProduitsByCategorie);
+router.post('/', produitController.createProduit);
+router.put('/:id', produitController.updateProduit);
+router.put('/:id/stock', produitController.updateStock);
+router.delete('/:id', produitController.deleteProduit);
 
 module.exports = router;

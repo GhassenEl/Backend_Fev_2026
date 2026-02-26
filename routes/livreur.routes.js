@@ -1,29 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const livreurController = require("../controllers/livreur.controller");
-const upload = require("../config/upload.config");
+// @ts-nocheck
+var express = require('express');
+var router = express.Router();
+var livreurController = require('../controllers/livreur.controller');
 
-// Upload multiple (photo + permis)
-router.post(
-  "/livreurs",
-  upload.livreur.fields([
-    { name: "photo", maxCount: 1 },
-    { name: "permis", maxCount: 1 },
-  ]),
-  livreurController.createLivreur,
-);
-
-router.put(
-  "/livreurs/:id",
-  upload.livreur.fields([
-    { name: "photo", maxCount: 1 },
-    { name: "permis", maxCount: 1 },
-  ]),
-  livreurController.updateLivreur,
-);
-
-router.get("/livreurs", livreurController.getAllLivreurs);
-router.get("/livreurs/:id", livreurController.getLivreurById);
-router.delete("/livreurs/:id", livreurController.deleteLivreur);
+router.get('/', livreurController.getLivreurs);
+router.get('/:id', livreurController.getLivreurById);
+router.get('/disponible/disponibles', livreurController.getLivreursDisponibles);
+router.post('/', livreurController.createLivreur);
+router.put('/:id', livreurController.updateLivreur);
+router.put('/:id/disponibilite', livreurController.updateDisponibilite);
+router.delete('/:id', livreurController.deleteLivreur);
 
 module.exports = router;
