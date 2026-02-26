@@ -1,125 +1,50 @@
-// Importation des modules
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+const http = require('http'); //1
 
-// Configuration
-dotenv.config();
+const { connectToMongoDB } = require('./config/db');
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users.routes');
+var osRouter = require('./routes/os.routes');
+var factureRouter = require('./routes/facture.routres');
 
-// Initialisation de l'application Express
-const app = express();
+require('dotenv').config(); // Load environment variables
 
-// Middleware
-app.use(cors()); // Permet les requêtes cross-origin
-app.use(express.json()); // Pour parser le JSON
-app.use(express.urlencoded({ extended: true })); // Pour parser les formulaires
+var app = express();
 
-// Configuration du port
-const PORT = process.env.PORT || 3002;
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Connexion à MongoDB (optionnel - à décommenter si vous utilisez MongoDB)
-/*
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/monprojet', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Connecté à MongoDB'))
-.catch(err => console.error('Erreur de connexion MongoDB:', err));
-*/
+app.use('/index', indexRouter);
+app.use('/users', usersRouter);
+app.use('/os', osRouter);
+app.use('/facture', factureRouter);
 
-// Routes de base
-app.get("/", (req, res) => {
-  res.json({
-    message: "Bienvenue sur mon API",
-    status: "OK",
-    timestamp: new Date().toISOString(),
-  });
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
 });
 
-// Route de test
-app.get("/api/test", (req, res) => {
-  res.json({
-    message: "Route de test fonctionne!",
-    data: [1, 2, 3, 4, 5],
-  });
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.json('error');
 });
 
-// Route avec paramètre
-app.get("/api/users/:id", (req, res) => {
-  const userId = req.params.id;
-  res.json({
-    message: `Utilisateur ${userId} trouvé`,
-    user: {
-      id: userId,
-      name: `Utilisateur ${userId}`,
-      email: `user${userId}@example.com`,
-    },
-  });
+//2
+const server = http.createServer(app);
+server.listen(process.env.PORT, () => {
+  connectToMongoDB();
+  console.log(`Server is running on http://localhost:${process.env.PORT}`);
 });
-
-// Route POST
-app.post("/api/users", (req, res) => {
-  const userData = req.body;
-  console.log("Données reçues:", userData);
-
-  res.status(201).json({
-    message: "Utilisateur créé avec succès",
-    user: userData,
-    id: Math.floor(Math.random() * 1000),
-  });
-});
-
-// Gestion des erreurs 404
-app.use((req, res) => {
-  res.status(404).json({
-    message: "Route non trouvée",
-    path: req.originalUrl,
-  });
-});
-
-// Gestion des erreurs serveur
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: "Erreur serveur",
-    error: process.env.NODE_ENV === "development" ? err.message : {},
-  });
-});
-
-// Démarrage du serveur avec gestion des erreurs de port
-const server = app
-  .listen(PORT)
-  .on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-      console.log(`❌ Le port ${PORT} est déjà utilisé.`);
-      console.log(
-        `💡 Essayez de changer le port dans le fichier .env ou utilisez un autre port.`,
-      );
-      console.log(`👉 Suggestions: PORT=3001, 3002, 3003, 8080`);
-      process.exit(1);
-    } else {
-      console.error("Erreur serveur:", err);
-    }
-  })
-  .on("listening", () => {
-    console.log(`✅ Serveur démarré avec succès!`);
-    console.log(`🌐 URL: http://localhost:${PORT}`);
-    console.log(`📝 Routes disponibles:`);
-    console.log(`   - GET  http://localhost:${PORT}/`);
-    console.log(`   - GET  http://localhost:${PORT}/api/test`);
-    console.log(`   - GET  http://localhost:${PORT}/api/users/123`);
-    console.log(`   - POST http://localhost:${PORT}/api/users`);
-    console.log(`🛑 Arrêter: Ctrl+C`);
-  });
-
-// Gestion propre de l'arrêt
-process.on("SIGINT", () => {
-  console.log("\n🛑 Arrêt du serveur...");
-  server.close(() => {
-    console.log("✅ Serveur arrêté");
-    process.exit(0);
-  });
-});
-
-module.exports = app;
